@@ -1,0 +1,21 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb-service
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    volumes:
+      - db-dashboard:/data/db
+    networks:
+      - dashboard-net
+
+volumes:
+  db-dashboard:
+
+networks:
+  dashboard-net:
+    name: dashboard-net
+    driver: bridge

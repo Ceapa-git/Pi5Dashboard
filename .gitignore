@@ -1,0 +1,5 @@
+venv
+.fleet
+__pycache__
+certs
+.env
