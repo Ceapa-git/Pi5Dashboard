@@ -1,0 +1,17 @@
+[Unit]
+Description=Start backend for dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/home/dan/src/dashboard/backend/run.sh
+WorkingDirectory=/home/dan/src/dashboard/backend
+Restart=always
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+User=dan
+Group=dan
+
+[Install]
+WantedBy=multi-user.target
