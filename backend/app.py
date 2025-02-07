@@ -4,6 +4,7 @@ import threading
 import time
 import datetime
 from flask import Flask, request
+from flask_cors import CORS
 from pymongo import MongoClient
 from stats import get_stats
 from werkzeug.serving import make_server
@@ -13,6 +14,7 @@ db = client["metrics"]
 logs = db["logs"]
 stop_event = threading.Event()
 server = Flask(__name__)
+CORS(server)
 
 
 @server.get("/stats/now")
