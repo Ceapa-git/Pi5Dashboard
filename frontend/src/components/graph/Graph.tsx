@@ -80,12 +80,20 @@ const Graph = ({
   };
 
   const generateTicks = (min: number, max: number, count: number) => {
+    if (min >= max - 1) {
+      if (min - 1 >= 0) min = min - 1;
+      max = max + 1;
+    }
     const step = (max - min) / (count - 1);
     return Array.from({ length: count }, (_, i) => Math.round(min + i * step));
   };
 
-  const xTicks = generateTicks(xLimits.min, xLimits.max, tickCount);
-  const yTicks = generateTicks(yLimits.min, yLimits.max, tickCount);
+  const xTicks = Array.from(
+    new Set(generateTicks(xLimits.min, xLimits.max, tickCount))
+  );
+  const yTicks = Array.from(
+    new Set(generateTicks(yLimits.min, yLimits.max, tickCount))
+  );
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -111,7 +119,7 @@ const Graph = ({
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={formattedData}
-            margin={{ top: 10, right: 20, left: 5, bottom: 0 }}
+            margin={{ top: 10, right: 20, left: 20, bottom: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#222" />
             <XAxis
