@@ -8,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  TooltipProps,
 } from "recharts";
 import { Card, CardContent, Typography } from "@mui/material";
 import styles from "./Graph.module.css";
@@ -95,13 +96,17 @@ const Graph = ({
     new Set(generateTicks(yLimits.min, yLimits.max, tickCount))
   );
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip: React.FC<TooltipProps<number, string>> = ({
+    active,
+    payload,
+    label,
+  }) => {
     if (active && payload && payload.length) {
       return (
         <Card className={styles.tooltipCard}>
           <CardContent className={styles.tooltipContent}>
             <Typography variant="body2" className={styles.tooltipText}>
-              {formatTooltipX(label)}
+              {formatTooltipX(label as number)}
             </Typography>
             <Typography variant="h6" className={styles.tooltipValue}>
               {payload[0].value}

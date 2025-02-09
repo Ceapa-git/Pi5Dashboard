@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTimeRange } from "@/context/TimeRangeContext";
 import Graph from "@/components/graph";
 import AdaptiveGraphContainer from "@/components/adaptiveGraphContainer";
@@ -15,6 +15,37 @@ const REFRESH_INTERVALS: Record<string, number> = {
   "60m": 30000,
   "24h": 60000,
 };
+
+interface Stat {
+  cpu_usage: number[];
+  disk_io: {
+    read: number;
+    read_count: number;
+    write: number;
+    write_count: number;
+  };
+  disk_usage: {
+    free: number;
+    percent: number;
+    total: number;
+    used: number;
+  };
+  fan_speed: number;
+  memory_usage: {
+    free: number;
+    percent: number;
+    total: number;
+    used: number;
+  };
+  network_traffic: {
+    packets_received: number;
+    packets_sent: number;
+    total_received: number;
+    total_sent: number;
+  };
+  temperature: number;
+  timestamp: number;
+}
 
 export default function Home() {
   const { timeRange } = useTimeRange();
@@ -40,20 +71,15 @@ export default function Home() {
   const [networkMax, setNetworkMax] = useState<number>(0);
   const [diskUsageMaxGB, setDiskUsageMaxGB] = useState<number>(0);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}?view=${timeRange}`);
       const stats = await response.json();
       if (!stats.length) return;
 
-      const minTimestamp =
-        Math.min(...stats.map((s: any) => s.timestamp)) * 1000;
-      const maxTimestamp =
-        Math.max(...stats.map((s: any) => s.timestamp)) * 1000;
-
       const cpuData = Array.from({ length: 4 }, (_, coreIndex) => ({
         title: `CPU Core ${coreIndex + 1}`,
-        data: stats.map((stat: any) => ({
+        data: stats.map((stat: Stat) => ({
           x: stat.timestamp * 1000,
           y: stat.cpu_usage[coreIndex] ?? 0,
         })),
@@ -87,7 +113,7 @@ export default function Home() {
         });
       }
 
-      const tempData: { x: number; y: number }[] = stats.map((stat: any) => ({
+      const tempData: { x: number; y: number }[] = stats.map((stat: Stat) => ({
         x: stat.timestamp * 1000,
         y: stat.temperature,
       }));
@@ -149,13 +175,13 @@ export default function Home() {
     } catch (error) {
       console.error("Failed to fetch stats:", error);
     }
-  };
+  }, [timeRange]);
 
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, REFRESH_INTERVALS[timeRange]);
     return () => clearInterval(interval);
-  }, [timeRange]);
+  }, [timeRange, fetchData]);
 
   return (
     <div className={styles.home}>
