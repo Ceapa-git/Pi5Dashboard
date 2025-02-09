@@ -29,8 +29,8 @@ const Graph = ({
   tickCount = 5,
 }: GraphProps) => {
   const reduceData = (originalData: { x: number; y: number }[]) => {
-    if (originalData.length <= 100) return originalData;
-    const segments = 100;
+    const segments = 300;
+    if (originalData.length <= segments) return originalData;
     const chunkSize = originalData.length / segments;
     const reduced: { x: number; y: number }[] = [];
     for (let i = 0; i < segments; i++) {
@@ -38,15 +38,16 @@ const Graph = ({
       let end = Math.floor((i + 1) * chunkSize);
       if (start >= originalData.length) break;
       if (end >= originalData.length) end = originalData.length - 1;
-      let minPoint = originalData[start];
-      let maxPoint = originalData[start];
+      let avgX = 0;
+      let avgY = 0;
       for (let j = start; j <= end; j++) {
         const current = originalData[j];
-        if (current.y < minPoint.y) minPoint = current;
-        if (current.y > maxPoint.y) maxPoint = current;
+        avgX += current.x;
+        avgY += current.y;
       }
-      reduced.push(minPoint);
-      if (minPoint !== maxPoint) reduced.push(maxPoint);
+      avgX = avgX / (end - start + 1);
+      avgY = avgY / (end - start + 1);
+      reduced.push({ x: avgX, y: avgY });
     }
     return reduced;
   };
