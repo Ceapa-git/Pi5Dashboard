@@ -1,4 +1,5 @@
-import TopBar from "@/components/topBar";
+import { TimeRangeProvider } from "@/context/TimeRangeContext";
+import TopBar from "@/components/topBar/TopBar";
 import "./globals.css";
 
 export default function RootLayout({
@@ -9,8 +10,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="layout">
-        <TopBar />
-        <main className="main">{children}</main>
+        <TimeRangeProvider>
+          <TopBar />
+          <main className="main">{children}</main>
+        </TimeRangeProvider>
       </body>
     </html>
   );

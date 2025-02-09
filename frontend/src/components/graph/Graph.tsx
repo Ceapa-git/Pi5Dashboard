@@ -9,6 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { Card, CardContent, Typography } from "@mui/material";
 import styles from "./Graph.module.css";
 
 interface GraphProps {
@@ -31,12 +32,28 @@ const Graph = ({
     y: point.y,
   }));
 
+  const timeRange = xLimits.max - xLimits.min;
+
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
+    if (timeRange < 2 * 60 * 1000) {
+      return `${date.getMinutes().toString().padStart(2, "0")}:${date
+        .getSeconds()
+        .toString()
+        .padStart(2, "0")}`;
+    }
     return `${date.getHours()}:${date
       .getMinutes()
       .toString()
       .padStart(2, "0")}`;
+  };
+
+  const formatTooltipX = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return `${date.getHours()}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}:${date.getSeconds().toString().padStart(2, "0")}`;
   };
 
   const generateTicks = (min: number, max: number, count: number) => {
@@ -47,13 +64,31 @@ const Graph = ({
   const xTicks = generateTicks(xLimits.min, xLimits.max, tickCount);
   const yTicks = generateTicks(yLimits.min, yLimits.max, tickCount);
 
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <Card className={styles.tooltipCard}>
+          <CardContent className={styles.tooltipContent}>
+            <Typography variant="body2" className={styles.tooltipText}>
+              {formatTooltipX(label)}
+            </Typography>
+            <Typography variant="h6" className={styles.tooltipValue}>
+              {payload[0].value}
+            </Typography>
+          </CardContent>
+        </Card>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className={styles.graphWrapper}>
       <div className={styles.graphContainer}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={formattedData}
-            margin={{ top: 10, right: 5, left: 5, bottom: 0 }}
+            margin={{ top: 10, right: 20, left: 5, bottom: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#222" />
             <XAxis
@@ -63,6 +98,7 @@ const Graph = ({
               tickFormatter={formatTime}
               tick={{ fill: "white" }}
               ticks={xTicks}
+              interval={0}
             />
             <YAxis
               domain={[yLimits.min, yLimits.max]}
@@ -72,15 +108,7 @@ const Graph = ({
               ticks={yTicks}
               interval={0}
             />
-            <Tooltip
-              labelFormatter={formatTime}
-              contentStyle={{
-                backgroundColor: "#111",
-                color: "white",
-                borderRadius: 5,
-                border: "1px solid #333",
-              }}
-            />
+            <Tooltip content={<CustomTooltip />} />
             <Area
               type="monotone"
               dataKey="y"

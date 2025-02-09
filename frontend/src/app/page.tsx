@@ -1,60 +1,58 @@
-import Graph from "@/components/graph";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useTimeRange } from "@/context/TimeRangeContext";
+import Graph from "@/components/graph/Graph";
 import styles from "./page.module.css";
-const now = Date.now();
-const oneHour = 3600 * 1000;
 
-const graphData = [
-  {
-    title: "CPU Core 1",
-    data: [
-      { x: now - 24 * oneHour, y: 100 },
-      { x: now - 3 * oneHour, y: 1 },
-      { x: now - 2 * oneHour, y: 1.5 },
-      { x: now - oneHour, y: 3 },
-      { x: now, y: 2 },
-    ],
-  },
-  {
-    title: "CPU Core 2",
-    data: [
-      { x: now - 3 * oneHour, y: 1 },
-      { x: now - 2 * oneHour, y: 1.5 },
-      { x: now - oneHour, y: 3 },
-      { x: now, y: 2 },
-    ],
-  },
-  {
-    title: "CPU Core 3",
-    data: [
-      { x: now - 3 * oneHour, y: 1 },
-      { x: now - 2 * oneHour, y: 1.5 },
-      { x: now - oneHour, y: 3 },
-      { x: now, y: 2 },
-    ],
-  },
-  {
-    title: "CPU Core 4",
-    data: [
-      { x: now - 3 * oneHour, y: 1 },
-      { x: now - 2 * oneHour, y: 1.5 },
-      { x: now - oneHour, y: 3 },
-      { x: now, y: 2 },
-    ],
-  },
-];
+const API_URL = "http://192.168.1.140:5000/stats";
 
-const xTags = [
-  now - 24 * oneHour,
-  now - 3 * oneHour,
-  now - 2 * oneHour,
-  now - oneHour,
-  now,
-];
-const yTags = ["0", "1", "2", "3", "4"];
-const xLimits = { min: now - 24 * oneHour, max: now };
-const yLimits = { min: 0, max: 100 };
+const REFRESH_INTERVALS: Record<string, number> = {
+  "10s": 5000,
+  "30s": 5000,
+  "60s": 10000,
+  "60m": 30000,
+  "24h": 60000,
+};
 
 export default function Home() {
+  const { timeRange } = useTimeRange();
+  const [graphData, setGraphData] = useState<
+    { title: string; data: { x: number; y: number }[] }[]
+  >([]);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(`${API_URL}?view=${timeRange}`);
+      const stats = await response.json();
+
+      if (!stats.length) return;
+
+      const minTimestamp =
+        Math.min(...stats.map((s: any) => s.timestamp)) * 1000;
+      const maxTimestamp =
+        Math.max(...stats.map((s: any) => s.timestamp)) * 1000;
+
+      const cpuData = Array.from({ length: 4 }, (_, coreIndex) => ({
+        title: `CPU Core ${coreIndex + 1}`,
+        data: stats.map((stat: any) => ({
+          x: stat.timestamp * 1000,
+          y: stat.cpu_usage[coreIndex] ?? 0,
+        })),
+      }));
+
+      setGraphData(cpuData);
+    } catch (error) {
+      console.error("Failed to fetch stats:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData(); // Initial fetch
+    const interval = setInterval(fetchData, REFRESH_INTERVALS[timeRange]);
+    return () => clearInterval(interval);
+  }, [timeRange]);
+
   return (
     <div className={styles.home}>
       <div className={styles.row}>
@@ -63,19 +61,21 @@ export default function Home() {
             <Graph
               key={index}
               data={graph.data}
-              xLimits={xLimits}
-              yLimits={yLimits}
+              xLimits={{
+                min:
+                  graph.data.length > 0
+                    ? graph.data[0].x
+                    : Date.now() - 24 * 3600 * 1000,
+                max:
+                  graph.data.length > 0
+                    ? graph.data[graph.data.length - 1].x
+                    : Date.now(),
+              }}
+              yLimits={{ min: 0, max: 100 }}
               title={graph.title}
             />
           ))}
         </div>
-        <div className={styles.box}>memory usage</div>
-        <div className={styles.box}>disk io</div>
-      </div>
-      <div className={styles.row}>
-        <div className={styles.box}>temp+fan</div>
-        <div className={styles.box}>network</div>
-        <div className={styles.box}>disk usage</div>
       </div>
     </div>
   );

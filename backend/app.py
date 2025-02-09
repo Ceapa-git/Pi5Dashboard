@@ -19,7 +19,9 @@ CORS(server)
 
 @server.get("/stats/now")
 def get_current_stats_request():
-  return get_stats()
+  stats = get_stats()
+  stats["timestamp"] = int(time.time())
+  return stats
 
 
 @server.delete("/stats/clear")

@@ -9,26 +9,19 @@ import {
   FormControl,
   Box,
 } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useTimeRange } from "@/context/TimeRangeContext";
 import styles from "./TopBar.module.css";
 
 const TopBar = () => {
-  const [timeRange, setTimeRange] = useState("10s");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const { timeRange, setTimeRange } = useTimeRange();
 
   const options = [
-    { id: 1, value: "10s", text: "10 seconds" },
-    { id: 2, value: "30s", text: "30 seconds" },
-    { id: 3, value: "60s", text: "1 minute" },
-    { id: 4, value: "60m", text: "1 hour" },
-    { id: 5, value: "24h", text: "1 day" },
+    { value: "10s", text: "10 seconds" },
+    { value: "30s", text: "30 seconds" },
+    { value: "60s", text: "1 minute" },
+    { value: "60m", text: "1 hour" },
+    { value: "24h", text: "1 day" },
   ];
-
-  if (!mounted) return null;
 
   return (
     <AppBar position="static" className={styles.topbar}>
@@ -55,7 +48,7 @@ const TopBar = () => {
               }}
             >
               {options.map((option) => (
-                <MenuItem key={option.id} value={option.value}>
+                <MenuItem key={option.value} value={option.value}>
                   {option.text}
                 </MenuItem>
               ))}
