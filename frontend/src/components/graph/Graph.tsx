@@ -13,18 +13,39 @@ import styles from "./Graph.module.css";
 
 interface GraphProps {
   data: { x: number; y: number }[];
-  xTags: string[];
-  yTags: string[];
   xLimits: { min: number; max: number };
   yLimits: { min: number; max: number };
   title?: string;
+  tickCount?: number;
 }
 
-const Graph = ({ data, xTags, yTags, xLimits, yLimits, title }: GraphProps) => {
+const Graph = ({
+  data,
+  xLimits,
+  yLimits,
+  title,
+  tickCount = 5,
+}: GraphProps) => {
   const formattedData = data.map((point) => ({
     x: point.x,
     y: point.y,
   }));
+
+  const formatTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return `${date.getHours()}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  const generateTicks = (min: number, max: number, count: number) => {
+    const step = (max - min) / (count - 1);
+    return Array.from({ length: count }, (_, i) => Math.round(min + i * step));
+  };
+
+  const xTicks = generateTicks(xLimits.min, xLimits.max, tickCount);
+  const yTicks = generateTicks(yLimits.min, yLimits.max, tickCount);
 
   return (
     <div className={styles.graphWrapper}>
@@ -32,25 +53,27 @@ const Graph = ({ data, xTags, yTags, xLimits, yLimits, title }: GraphProps) => {
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             data={formattedData}
-            margin={{ top: 10, right: 30, left: 30, bottom: 10 }}
+            margin={{ top: 10, right: 5, left: 5, bottom: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#222" />
             <XAxis
               dataKey="x"
               domain={[xLimits.min, xLimits.max]}
               type="number"
+              tickFormatter={formatTime}
               tick={{ fill: "white" }}
-              allowDataOverflow
-              ticks={xTags.map(Number)}
+              ticks={xTicks}
             />
             <YAxis
               domain={[yLimits.min, yLimits.max]}
               type="number"
               tick={{ fill: "white" }}
-              allowDataOverflow
-              ticks={yTags.map(Number)}
+              width={30}
+              ticks={yTicks}
+              interval={0}
             />
             <Tooltip
+              labelFormatter={formatTime}
               contentStyle={{
                 backgroundColor: "#111",
                 color: "white",

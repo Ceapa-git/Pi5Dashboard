@@ -1,49 +1,58 @@
 import Graph from "@/components/graph";
 import styles from "./page.module.css";
+const now = Date.now();
+const oneHour = 3600 * 1000;
 
 const graphData = [
   {
     title: "CPU Core 1",
     data: [
-      { x: 1, y: 1 },
-      { x: 2, y: 1.2 },
-      { x: 3, y: 3 },
-      { x: 4, y: 0.8 },
+      { x: now - 24 * oneHour, y: 100 },
+      { x: now - 3 * oneHour, y: 1 },
+      { x: now - 2 * oneHour, y: 1.5 },
+      { x: now - oneHour, y: 3 },
+      { x: now, y: 2 },
     ],
   },
   {
     title: "CPU Core 2",
     data: [
-      { x: 1, y: 0.5 },
-      { x: 2, y: 1.5 },
-      { x: 3, y: 2.5 },
-      { x: 4, y: 1 },
+      { x: now - 3 * oneHour, y: 1 },
+      { x: now - 2 * oneHour, y: 1.5 },
+      { x: now - oneHour, y: 3 },
+      { x: now, y: 2 },
     ],
   },
   {
     title: "CPU Core 3",
     data: [
-      { x: 1, y: 0.8 },
-      { x: 2, y: 1.7 },
-      { x: 3, y: 2.2 },
-      { x: 4, y: 1.3 },
+      { x: now - 3 * oneHour, y: 1 },
+      { x: now - 2 * oneHour, y: 1.5 },
+      { x: now - oneHour, y: 3 },
+      { x: now, y: 2 },
     ],
   },
   {
     title: "CPU Core 4",
     data: [
-      { x: 1, y: 1.1 },
-      { x: 2, y: 2.3 },
-      { x: 3, y: 3.2 },
-      { x: 4, y: 1.4 },
+      { x: now - 3 * oneHour, y: 1 },
+      { x: now - 2 * oneHour, y: 1.5 },
+      { x: now - oneHour, y: 3 },
+      { x: now, y: 2 },
     ],
   },
 ];
 
-const xTags = ["1", "2", "3", "4"];
+const xTags = [
+  now - 24 * oneHour,
+  now - 3 * oneHour,
+  now - 2 * oneHour,
+  now - oneHour,
+  now,
+];
 const yTags = ["0", "1", "2", "3", "4"];
-const xLimits = { min: 1, max: 4 };
-const yLimits = { min: 0, max: 4 };
+const xLimits = { min: now - 24 * oneHour, max: now };
+const yLimits = { min: 0, max: 100 };
 
 export default function Home() {
   return (
@@ -54,8 +63,6 @@ export default function Home() {
             <Graph
               key={index}
               data={graph.data}
-              xTags={xTags}
-              yTags={yTags}
               xLimits={xLimits}
               yLimits={yLimits}
               title={graph.title}
