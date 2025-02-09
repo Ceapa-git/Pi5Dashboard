@@ -27,7 +27,30 @@ const Graph = ({
   title,
   tickCount = 5,
 }: GraphProps) => {
-  const formattedData = data.map((point) => ({
+  const reduceData = (originalData: { x: number; y: number }[]) => {
+    if (originalData.length <= 100) return originalData;
+    const segments = 100;
+    const chunkSize = originalData.length / segments;
+    const reduced: { x: number; y: number }[] = [];
+    for (let i = 0; i < segments; i++) {
+      const start = Math.floor(i * chunkSize);
+      let end = Math.floor((i + 1) * chunkSize);
+      if (start >= originalData.length) break;
+      if (end >= originalData.length) end = originalData.length - 1;
+      let minPoint = originalData[start];
+      let maxPoint = originalData[start];
+      for (let j = start; j <= end; j++) {
+        const current = originalData[j];
+        if (current.y < minPoint.y) minPoint = current;
+        if (current.y > maxPoint.y) maxPoint = current;
+      }
+      reduced.push(minPoint);
+      if (minPoint !== maxPoint) reduced.push(maxPoint);
+    }
+    return reduced;
+  };
+
+  const formattedData = reduceData(data).map((point) => ({
     x: point.x,
     y: point.y,
   }));
