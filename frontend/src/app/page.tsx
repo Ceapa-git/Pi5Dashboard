@@ -77,88 +77,81 @@ export default function Home() {
       const stats = await response.json();
       if (!stats.length) return;
 
+      stats.sort((a: Stat, b: Stat) => a.timestamp - b.timestamp);
+
+      const ensureNonNegative = (value: number) => (value < 0 ? 0 : value);
+
       const cpuData = Array.from({ length: 4 }, (_, coreIndex) => ({
         title: `CPU Core ${coreIndex + 1}`,
         data: stats.map((stat: Stat) => ({
           x: stat.timestamp * 1000,
-          y: stat.cpu_usage[coreIndex] ?? 0,
+          y: ensureNonNegative(stat.cpu_usage[coreIndex] ?? 0),
         })),
       }));
 
-      const memData: { x: number; y: number }[] = [];
       let maxMemGB = 0;
-      for (const stat of stats) {
-        const usedGB = stat.memory_usage.used / 1073741824;
-        const totalGB = stat.memory_usage.total / 1073741824;
+      const memData = stats.map((stat: Stat) => {
+        const usedGB = ensureNonNegative(stat.memory_usage.used / 1073741824);
+        const totalGB = ensureNonNegative(stat.memory_usage.total / 1073741824);
         if (totalGB > maxMemGB) maxMemGB = totalGB;
-        memData.push({
-          x: stat.timestamp * 1000,
-          y: usedGB,
-        });
-      }
+        return { x: stat.timestamp * 1000, y: usedGB };
+      });
 
-      const ioData: { x: number; y: number }[] = [];
       let maxIo = 0;
+      const ioData = [];
       for (let i = 1; i < stats.length; i++) {
         const dt = stats[i].timestamp - stats[i - 1].timestamp;
         if (dt <= 0) continue;
-        const readDiff = stats[i].disk_io.read - stats[i - 1].disk_io.read;
-        const writeDiff = stats[i].disk_io.write - stats[i - 1].disk_io.write;
+        const readDiff = ensureNonNegative(
+          stats[i].disk_io.read - stats[i - 1].disk_io.read
+        );
+        const writeDiff = ensureNonNegative(
+          stats[i].disk_io.write - stats[i - 1].disk_io.write
+        );
         const totalBytes = readDiff + writeDiff;
         const rateMBs = totalBytes / dt / (1024 * 1024);
         if (rateMBs > maxIo) maxIo = rateMBs;
-        ioData.push({
-          x: stats[i].timestamp * 1000,
-          y: rateMBs,
-        });
+        ioData.push({ x: stats[i].timestamp * 1000, y: rateMBs });
       }
 
-      const tempData: { x: number; y: number }[] = stats.map((stat: Stat) => ({
+      const tempData = stats.map((stat: Stat) => ({
         x: stat.timestamp * 1000,
-        y: stat.temperature,
+        y: ensureNonNegative(stat.temperature),
       }));
 
-      const fData: { x: number; y: number }[] = [];
       let fMax = 0;
-      for (const stat of stats) {
-        if (stat.fan_speed > fMax) fMax = stat.fan_speed;
-        fData.push({
-          x: stat.timestamp * 1000,
-          y: stat.fan_speed,
-        });
-      }
+      const fData = stats.map((stat: Stat) => {
+        const fanSpeed = ensureNonNegative(stat.fan_speed);
+        if (fanSpeed > fMax) fMax = fanSpeed;
+        return { x: stat.timestamp * 1000, y: fanSpeed };
+      });
 
-      const netData: { x: number; y: number }[] = [];
       let nMax = 0;
+      const netData = [];
       for (let i = 1; i < stats.length; i++) {
         const dt = stats[i].timestamp - stats[i - 1].timestamp;
         if (dt <= 0) continue;
-        const rxDiff =
+        const rxDiff = ensureNonNegative(
           stats[i].network_traffic.total_received -
-          stats[i - 1].network_traffic.total_received;
-        const txDiff =
+            stats[i - 1].network_traffic.total_received
+        );
+        const txDiff = ensureNonNegative(
           stats[i].network_traffic.total_sent -
-          stats[i - 1].network_traffic.total_sent;
+            stats[i - 1].network_traffic.total_sent
+        );
         const totalBytes = rxDiff + txDiff;
         const rateMBs = totalBytes / dt / (1024 * 1024);
         if (rateMBs > nMax) nMax = rateMBs;
-        netData.push({
-          x: stats[i].timestamp * 1000,
-          y: rateMBs,
-        });
+        netData.push({ x: stats[i].timestamp * 1000, y: rateMBs });
       }
 
-      const diskData: { x: number; y: number }[] = [];
       let dMaxGB = 0;
-      for (const stat of stats) {
-        const usedGB = stat.disk_usage.used / 1073741824;
-        const totalGB = stat.disk_usage.total / 1073741824;
+      const diskData = stats.map((stat: Stat) => {
+        const usedGB = ensureNonNegative(stat.disk_usage.used / 1073741824);
+        const totalGB = ensureNonNegative(stat.disk_usage.total / 1073741824);
         if (totalGB > dMaxGB) dMaxGB = totalGB;
-        diskData.push({
-          x: stat.timestamp * 1000,
-          y: usedGB,
-        });
-      }
+        return { x: stat.timestamp * 1000, y: usedGB };
+      });
 
       setCpuGraphs(cpuData);
       setMemoryData(memData);
