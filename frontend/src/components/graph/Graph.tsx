@@ -15,49 +15,75 @@ import styles from "./Graph.module.css";
 
 interface GraphProps {
   data: { x: number; y: number }[];
-  xLimits: { min: number; max: number };
-  yLimits: { min: number; max: number };
+  xLimits?: { min: number; max: number };
+  yLimits?: { min: number; max: number };
   title?: string;
   tickCount?: number;
 }
 
 const Graph = ({
   data,
-  xLimits,
-  yLimits,
+  xLimits = undefined,
+  yLimits = undefined,
   title,
   tickCount = 5,
 }: GraphProps) => {
   const reduceData = (originalData: { x: number; y: number }[]) => {
     const segments = 300;
-    if (originalData.length <= segments) return originalData;
+    if (originalData.length <= segments) {
+      const computedXLimits = {
+        min: Math.min(...originalData.map((point) => point.x)),
+        max: Math.max(...originalData.map((point) => point.x)),
+      };
+
+      const computedYLimits = {
+        min: 0,
+        max: Math.max(...originalData.map((point) => point.y)),
+      };
+
+      return { formattedData: originalData, computedXLimits, computedYLimits };
+    }
+
     const chunkSize = originalData.length / segments;
     const reduced: { x: number; y: number }[] = [];
+
     for (let i = 0; i < segments; i++) {
       const start = Math.floor(i * chunkSize);
       let end = Math.floor((i + 1) * chunkSize);
       if (start >= originalData.length) break;
       if (end >= originalData.length) end = originalData.length - 1;
+
       let avgX = 0;
       let avgY = 0;
       for (let j = start; j <= end; j++) {
-        const current = originalData[j];
-        avgX += current.x;
-        avgY += current.y;
+        avgX += originalData[j].x;
+        avgY += originalData[j].y;
       }
-      avgX = avgX / (end - start + 1);
-      avgY = avgY / (end - start + 1);
+
+      avgX /= end - start + 1;
+      avgY /= end - start + 1;
       reduced.push({ x: avgX, y: avgY });
     }
-    return reduced;
+
+    const computedXLimits = {
+      min: Math.min(...reduced.map((point) => point.x)),
+      max: Math.max(...reduced.map((point) => point.x)),
+    };
+
+    const computedYLimits = {
+      min: 0,
+      max: Math.max(...reduced.map((point) => point.y)),
+    };
+
+    return { formattedData: reduced, computedXLimits, computedYLimits };
   };
 
-  const formattedData = reduceData(data).map((point) => ({
-    x: point.x,
-    y: point.y,
-  }));
+  const { formattedData, computedXLimits, computedYLimits } = reduceData(data);
 
-  const timeRange = xLimits.max - xLimits.min;
+  const finalXLimits = xLimits || computedXLimits || { min: 0, max: 1 };
+  const finalYLimits = yLimits || computedYLimits || { min: 0, max: 1 };
+
+  const timeRange = finalXLimits.max - finalXLimits.min;
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -91,10 +117,10 @@ const Graph = ({
   };
 
   const xTicks = Array.from(
-    new Set(generateTicks(xLimits.min, xLimits.max, tickCount))
+    new Set(generateTicks(finalXLimits.min, finalXLimits.max, tickCount))
   );
   const yTicks = Array.from(
-    new Set(generateTicks(yLimits.min, yLimits.max, tickCount))
+    new Set(generateTicks(finalYLimits.min, finalYLimits.max, tickCount))
   );
 
   const CustomTooltip: React.FC<TooltipProps<number, string>> = ({
@@ -130,7 +156,7 @@ const Graph = ({
             <CartesianGrid strokeDasharray="3 3" stroke="#222" />
             <XAxis
               dataKey="x"
-              domain={[xLimits.min, xLimits.max]}
+              domain={[finalXLimits.min, finalXLimits.max]}
               type="number"
               tickFormatter={formatTime}
               tick={{ fill: "white" }}
@@ -138,7 +164,7 @@ const Graph = ({
               interval={0}
             />
             <YAxis
-              domain={[yLimits.min, yLimits.max]}
+              domain={[finalYLimits.min, finalYLimits.max]}
               type="number"
               tick={{ fill: "white" }}
               width={30}

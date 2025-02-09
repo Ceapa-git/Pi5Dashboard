@@ -66,9 +66,6 @@ export default function Home() {
   >([]);
 
   const [memoryMaxGB, setMemoryMaxGB] = useState<number>(0);
-  const [diskIoMax, setDiskIoMax] = useState<number>(0);
-  const [fanMax, setFanMax] = useState<number>(0);
-  const [networkMax, setNetworkMax] = useState<number>(0);
   const [diskUsageMaxGB, setDiskUsageMaxGB] = useState<number>(0);
 
   const fetchData = useCallback(async () => {
@@ -97,7 +94,6 @@ export default function Home() {
         return { x: stat.timestamp * 1000, y: usedGB };
       });
 
-      let maxIo = 0;
       const ioData = [];
       for (let i = 1; i < stats.length; i++) {
         const dt = stats[i].timestamp - stats[i - 1].timestamp;
@@ -110,7 +106,6 @@ export default function Home() {
         );
         const totalBytes = readDiff + writeDiff;
         const rateMBs = totalBytes / dt / (1024 * 1024);
-        if (rateMBs > maxIo) maxIo = rateMBs;
         ioData.push({ x: stats[i].timestamp * 1000, y: rateMBs });
       }
 
@@ -119,14 +114,11 @@ export default function Home() {
         y: ensureNonNegative(stat.temperature),
       }));
 
-      let fMax = 0;
       const fData = stats.map((stat: Stat) => {
         const fanSpeed = ensureNonNegative(stat.fan_speed);
-        if (fanSpeed > fMax) fMax = fanSpeed;
         return { x: stat.timestamp * 1000, y: fanSpeed };
       });
 
-      let nMax = 0;
       const netData = [];
       for (let i = 1; i < stats.length; i++) {
         const dt = stats[i].timestamp - stats[i - 1].timestamp;
@@ -141,7 +133,6 @@ export default function Home() {
         );
         const totalBytes = rxDiff + txDiff;
         const rateMBs = totalBytes / dt / (1024 * 1024);
-        if (rateMBs > nMax) nMax = rateMBs;
         netData.push({ x: stats[i].timestamp * 1000, y: rateMBs });
       }
 
@@ -157,12 +148,9 @@ export default function Home() {
       setMemoryData(memData);
       setMemoryMaxGB(maxMemGB);
       setDiskIoData(ioData);
-      setDiskIoMax(maxIo);
       setTemperatureData(tempData);
       setFanData(fData);
-      setFanMax(fMax);
       setNetworkData(netData);
-      setNetworkMax(nMax);
       setDiskUsageData(diskData);
       setDiskUsageMaxGB(dMaxGB);
     } catch (error) {
@@ -220,7 +208,6 @@ export default function Home() {
                   ? diskIoData[diskIoData.length - 1].x
                   : Date.now(),
             }}
-            yLimits={{ min: 0, max: diskIoMax }}
             title="Disk IO (MB/s)"
           />
         </AdaptiveGraphContainer>
@@ -247,7 +234,6 @@ export default function Home() {
               max:
                 fanData.length > 0 ? fanData[fanData.length - 1].x : Date.now(),
             }}
-            yLimits={{ min: 0, max: fanMax }}
             title="Fan Speed (RPM)"
           />
         </AdaptiveGraphContainer>
@@ -261,7 +247,6 @@ export default function Home() {
                   ? networkData[networkData.length - 1].x
                   : Date.now(),
             }}
-            yLimits={{ min: 0, max: networkMax }}
             title="Network Traffic (MB/s)"
           />
         </AdaptiveGraphContainer>
