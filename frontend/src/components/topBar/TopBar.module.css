@@ -1,0 +1,15 @@
+.topbar {
+  width: 100%;
+  position: static;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+}
+
+.selectContainer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

@@ -4,7 +4,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-ExecStart=/home/dan/.nvm/versions/node/v22.13.1/bin/npm run dev -- --host
+ExecStart=/home/dan/.nvm/versions/node/v22.13.1/bin/npm run dev
 WorkingDirectory=/home/dan/src/dashboard/frontend
 Restart=always
 RestartSec=5s
