@@ -54,7 +54,7 @@ def get_fan_speed():
 
 
 def get_cpu_usage():
-  return psutil.cpu_percent()
+  return psutil.cpu_percent(percpu=True)
 
 
 def get_memory_usage():
@@ -75,5 +75,5 @@ def get_stats():
     "temperature": get_temperature(),
     "fan_speed": get_fan_speed(),
     "cpu_usage": get_cpu_usage(),
-    "memory_usage": get_memory_usage(),
+    "memory_usage": get_memory_usage()
   }
