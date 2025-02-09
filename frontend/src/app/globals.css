@@ -31,12 +31,19 @@ body {
 
 #__next {
   height: 100%;
-  display: flex;
-  flex-direction: column;
+  margin: 0;
+  padding: 0;
 }
 
 .layout {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  overflow: auto;
 }

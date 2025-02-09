@@ -1,0 +1,21 @@
+.graphContainer {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  height: 100%;
+}
+
+.graphContainerOne {
+  grid-template-rows: 1fr;
+  grid-template-columns: 1fr;
+}
+
+.graphContainerTwo {
+  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns: 1fr;
+}
+
+.graphContainerFour {
+  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+}
