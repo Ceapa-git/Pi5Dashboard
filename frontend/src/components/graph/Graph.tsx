@@ -195,6 +195,8 @@ const Graph = ({
               strokeWidth={2}
               fillOpacity={0.2}
               fill="#00ff99"
+              animationDuration={100}
+              animationEasing="ease-out"
             />
           </AreaChart>
         </ResponsiveContainer>
