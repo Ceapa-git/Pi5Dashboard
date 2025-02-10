@@ -1,3 +1,5 @@
+"use client";
+
 import { TimeRangeProvider } from "@/context/TimeRangeContext";
 import TopBar from "@/components/topBar/TopBar";
 import "./globals.css";

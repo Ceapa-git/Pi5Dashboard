@@ -67,6 +67,7 @@ export default function Home() {
 
   const [memoryMaxGB, setMemoryMaxGB] = useState<number>(0);
   const [diskUsageMaxGB, setDiskUsageMaxGB] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const fetchData = useCallback(async () => {
     try {
@@ -155,116 +156,133 @@ export default function Home() {
       setDiskUsageMaxGB(dMaxGB);
     } catch (error) {
       console.error("Failed to fetch stats:", error);
+    } finally {
+      setLoading(false);
     }
   }, [timeRange]);
 
   useEffect(() => {
+    setLoading(true);
     fetchData();
     const interval = setInterval(fetchData, REFRESH_INTERVALS[timeRange]);
     return () => clearInterval(interval);
   }, [timeRange, fetchData]);
 
   return (
-    <div className={styles.home}>
-      <div className={styles.row}>
-        <AdaptiveGraphContainer>
-          {cpuGraphs.map((graph, index) => (
-            <Graph
-              key={index}
-              data={graph.data}
-              xLimits={{
-                min: graph.data.length > 0 ? graph.data[0].x : Date.now(),
-                max:
-                  graph.data.length > 0
-                    ? graph.data[graph.data.length - 1].x
-                    : Date.now(),
-              }}
-              yLimits={{ min: 0, max: 100 }}
-              title={graph.title}
-            />
-          ))}
-        </AdaptiveGraphContainer>
-        <AdaptiveGraphContainer>
-          <Graph
-            data={memoryData}
-            xLimits={{
-              min: memoryData.length > 0 ? memoryData[0].x : Date.now(),
-              max:
-                memoryData.length > 0
-                  ? memoryData[memoryData.length - 1].x
-                  : Date.now(),
-            }}
-            yLimits={{ min: 0, max: memoryMaxGB }}
-            title="Memory Usage (GB)"
-          />
-        </AdaptiveGraphContainer>
-        <AdaptiveGraphContainer>
-          <Graph
-            data={diskIoData}
-            xLimits={{
-              min: diskIoData.length > 0 ? diskIoData[0].x : Date.now(),
-              max:
-                diskIoData.length > 0
-                  ? diskIoData[diskIoData.length - 1].x
-                  : Date.now(),
-            }}
-            title="Disk IO (MB/s)"
-          />
-        </AdaptiveGraphContainer>
-      </div>
-      <div className={styles.row}>
-        <AdaptiveGraphContainer>
-          <Graph
-            data={temperatureData}
-            xLimits={{
-              min:
-                temperatureData.length > 0 ? temperatureData[0].x : Date.now(),
-              max:
-                temperatureData.length > 0
-                  ? temperatureData[temperatureData.length - 1].x
-                  : Date.now(),
-            }}
-            yLimits={{ min: 0, max: 90 }}
-            title="Temperature (°C)"
-          />
-          <Graph
-            data={fanData}
-            xLimits={{
-              min: fanData.length > 0 ? fanData[0].x : Date.now(),
-              max:
-                fanData.length > 0 ? fanData[fanData.length - 1].x : Date.now(),
-            }}
-            title="Fan Speed (RPM)"
-          />
-        </AdaptiveGraphContainer>
-        <AdaptiveGraphContainer>
-          <Graph
-            data={networkData}
-            xLimits={{
-              min: networkData.length > 0 ? networkData[0].x : Date.now(),
-              max:
-                networkData.length > 0
-                  ? networkData[networkData.length - 1].x
-                  : Date.now(),
-            }}
-            title="Network Traffic (MB/s)"
-          />
-        </AdaptiveGraphContainer>
-        <AdaptiveGraphContainer>
-          <Graph
-            data={diskUsageData}
-            xLimits={{
-              min: diskUsageData.length > 0 ? diskUsageData[0].x : Date.now(),
-              max:
-                diskUsageData.length > 0
-                  ? diskUsageData[diskUsageData.length - 1].x
-                  : Date.now(),
-            }}
-            yLimits={{ min: 0, max: diskUsageMaxGB }}
-            title="Disk Usage (GB)"
-          />
-        </AdaptiveGraphContainer>
-      </div>
-    </div>
+    <>
+      {loading ? (
+        <div className={styles.loadingContainer}>
+          <div className={styles.spinner}></div>
+          <p>Loading...</p>
+        </div>
+      ) : (
+        <div className={styles.home}>
+          <div className={styles.row}>
+            <AdaptiveGraphContainer>
+              {cpuGraphs.map((graph, index) => (
+                <Graph
+                  key={index}
+                  data={graph.data}
+                  xLimits={{
+                    min: graph.data.length > 0 ? graph.data[0].x : Date.now(),
+                    max:
+                      graph.data.length > 0
+                        ? graph.data[graph.data.length - 1].x
+                        : Date.now(),
+                  }}
+                  yLimits={{ min: 0, max: 100 }}
+                  title={graph.title}
+                />
+              ))}
+            </AdaptiveGraphContainer>
+            <AdaptiveGraphContainer>
+              <Graph
+                data={memoryData}
+                xLimits={{
+                  min: memoryData.length > 0 ? memoryData[0].x : Date.now(),
+                  max:
+                    memoryData.length > 0
+                      ? memoryData[memoryData.length - 1].x
+                      : Date.now(),
+                }}
+                yLimits={{ min: 0, max: memoryMaxGB }}
+                title="Memory Usage (GB)"
+              />
+            </AdaptiveGraphContainer>
+            <AdaptiveGraphContainer>
+              <Graph
+                data={diskIoData}
+                xLimits={{
+                  min: diskIoData.length > 0 ? diskIoData[0].x : Date.now(),
+                  max:
+                    diskIoData.length > 0
+                      ? diskIoData[diskIoData.length - 1].x
+                      : Date.now(),
+                }}
+                title="Disk IO (MB/s)"
+              />
+            </AdaptiveGraphContainer>
+          </div>
+          <div className={styles.row}>
+            <AdaptiveGraphContainer>
+              <Graph
+                data={temperatureData}
+                xLimits={{
+                  min:
+                    temperatureData.length > 0
+                      ? temperatureData[0].x
+                      : Date.now(),
+                  max:
+                    temperatureData.length > 0
+                      ? temperatureData[temperatureData.length - 1].x
+                      : Date.now(),
+                }}
+                yLimits={{ min: 0, max: 90 }}
+                title="Temperature (°C)"
+              />
+              <Graph
+                data={fanData}
+                xLimits={{
+                  min: fanData.length > 0 ? fanData[0].x : Date.now(),
+                  max:
+                    fanData.length > 0
+                      ? fanData[fanData.length - 1].x
+                      : Date.now(),
+                }}
+                title="Fan Speed (RPM)"
+              />
+            </AdaptiveGraphContainer>
+            <AdaptiveGraphContainer>
+              <Graph
+                data={networkData}
+                xLimits={{
+                  min: networkData.length > 0 ? networkData[0].x : Date.now(),
+                  max:
+                    networkData.length > 0
+                      ? networkData[networkData.length - 1].x
+                      : Date.now(),
+                }}
+                title="Network Traffic (MB/s)"
+              />
+            </AdaptiveGraphContainer>
+            <AdaptiveGraphContainer>
+              <Graph
+                data={diskUsageData}
+                xLimits={{
+                  min:
+                    diskUsageData.length > 0 ? diskUsageData[0].x : Date.now(),
+                  max:
+                    diskUsageData.length > 0
+                      ? diskUsageData[diskUsageData.length - 1].x
+                      : Date.now(),
+                }}
+                yLimits={{ min: 0, max: diskUsageMaxGB }}
+                title="Disk Usage (GB)"
+              />
+            </AdaptiveGraphContainer>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
