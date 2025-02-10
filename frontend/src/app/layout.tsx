@@ -1,4 +1,4 @@
-"use client";
+"use clinet";
 
 import { TimeRangeProvider } from "@/context/TimeRangeContext";
 import TopBar from "@/components/topBar/TopBar";
@@ -11,6 +11,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <title>RaspberryPi5</title>
+        <meta name="description" content="Dashboard for Raspberry Pi 5" />
+        <link rel="icon" href="/favicon.ico" />
+      </head>
       <body className="layout">
         <TimeRangeProvider>
           <TopBar />
