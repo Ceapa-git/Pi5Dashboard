@@ -31,21 +31,21 @@ const Graph = ({
   const reduceData = (originalData: { x: number; y: number }[]) => {
     const segments = 300;
     if (originalData.length <= segments) {
-      const computedXLimits = {
-        min: Math.min(...originalData.map((point) => point.x)),
-        max: Math.max(...originalData.map((point) => point.x)),
-      };
-
-      const computedYLimits = {
-        min: 0,
-        max: Math.max(...originalData.map((point) => point.y)),
-      };
-
-      return { formattedData: originalData, computedXLimits, computedYLimits };
+      const processedData: { x: number; y: number; duration: number }[] = [];
+      for (let i = 0; i < originalData.length; i++) {
+        processedData.push({
+          ...originalData[i],
+          duration:
+            i < originalData.length - 1
+              ? originalData[i + 1].x - originalData[i].x
+              : 1,
+        });
+      }
+      return { formattedData: processedData };
     }
 
     const chunkSize = originalData.length / segments;
-    const reduced: { x: number; y: number }[] = [];
+    const processedData: { x: number; y: number; duration: number }[] = [];
 
     for (let i = 0; i < segments; i++) {
       const start = Math.floor(i * chunkSize);
@@ -62,26 +62,26 @@ const Graph = ({
 
       avgX /= end - start + 1;
       avgY /= end - start + 1;
-      reduced.push({ x: avgX, y: avgY });
+      processedData.push({
+        x: avgX,
+        y: avgY,
+        duration: originalData[end].x - originalData[start].x,
+      });
     }
 
-    const computedXLimits = {
-      min: Math.min(...reduced.map((point) => point.x)),
-      max: Math.max(...reduced.map((point) => point.x)),
-    };
-
-    const computedYLimits = {
-      min: 0,
-      max: Math.max(...reduced.map((point) => point.y)),
-    };
-
-    return { formattedData: reduced, computedXLimits, computedYLimits };
+    return { formattedData: processedData };
   };
 
-  const { formattedData, computedXLimits, computedYLimits } = reduceData(data);
+  const { formattedData } = reduceData(data);
 
-  const finalXLimits = xLimits || computedXLimits || { min: 0, max: 1 };
-  const finalYLimits = yLimits || computedYLimits || { min: 0, max: 1 };
+  const finalXLimits = xLimits || {
+      min: Math.min(...formattedData.map((point) => point.x)),
+      max: Math.max(...formattedData.map((point) => point.x)),
+    } || { min: 0, max: 1 };
+  const finalYLimits = yLimits || {
+      min: 0,
+      max: Math.max(...formattedData.map((point) => point.y)),
+    } || { min: 0, max: 1 };
 
   const timeRange = finalXLimits.max - finalXLimits.min;
 
@@ -123,12 +123,23 @@ const Graph = ({
     new Set(generateTicks(finalYLimits.min, finalYLimits.max, tickCount))
   );
 
+  const formatDuration = (ms: number) => {
+    const seconds = Math.floor(ms / 1000) % 60;
+    const minutes = Math.floor(ms / (1000 * 60)) % 60;
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    let duration = "";
+    if (hours) duration += `${hours}h `;
+    if (minutes) duration += `${minutes}m `;
+    return duration + `${seconds}s`;
+  };
+
   const CustomTooltip: React.FC<TooltipProps<number, string>> = ({
     active,
     payload,
     label,
   }) => {
     if (active && payload && payload.length) {
+      const point = formattedData.find((point) => point.x === label);
       return (
         <Card className={styles.tooltipCard}>
           <CardContent className={styles.tooltipContent}>
@@ -138,6 +149,11 @@ const Graph = ({
             <Typography variant="h6" className={styles.tooltipValue}>
               {payload[0].value}
             </Typography>
+            {point && (
+              <Typography variant="body2" className={styles.tooltipDuration}>
+                Interval: {formatDuration(point.duration)}
+              </Typography>
+            )}
           </CardContent>
         </Card>
       );
