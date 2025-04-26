@@ -6,7 +6,7 @@ import Graph from "@/components/graph";
 import AdaptiveGraphContainer from "@/components/adaptiveGraphContainer";
 import styles from "./page.module.css";
 
-const API_URL = "http://192.168.1.140:5000/stats";
+const API_URL = "https://pidashboard.ceapagames.com/api/stats";
 
 const REFRESH_INTERVALS: Record<string, number> = {
   "10s": 5000,
@@ -59,7 +59,7 @@ export default function Home() {
   >([]);
   const [fanData, setFanData] = useState<{ x: number; y: number }[]>([]);
   const [networkData, setNetworkData] = useState<{ x: number; y: number }[]>(
-    []
+    [],
   );
   const [diskUsageData, setDiskUsageData] = useState<
     { x: number; y: number }[]
@@ -100,10 +100,10 @@ export default function Home() {
         const dt = stats[i].timestamp - stats[i - 1].timestamp;
         if (dt <= 0) continue;
         const readDiff = ensureNonNegative(
-          stats[i].disk_io.read - stats[i - 1].disk_io.read
+          stats[i].disk_io.read - stats[i - 1].disk_io.read,
         );
         const writeDiff = ensureNonNegative(
-          stats[i].disk_io.write - stats[i - 1].disk_io.write
+          stats[i].disk_io.write - stats[i - 1].disk_io.write,
         );
         const totalBytes = readDiff + writeDiff;
         const rateMBs = totalBytes / dt / (1024 * 1024);
@@ -126,11 +126,11 @@ export default function Home() {
         if (dt <= 0) continue;
         const rxDiff = ensureNonNegative(
           stats[i].network_traffic.total_received -
-            stats[i - 1].network_traffic.total_received
+            stats[i - 1].network_traffic.total_received,
         );
         const txDiff = ensureNonNegative(
           stats[i].network_traffic.total_sent -
-            stats[i - 1].network_traffic.total_sent
+            stats[i - 1].network_traffic.total_sent,
         );
         const totalBytes = rxDiff + txDiff;
         const rateMBs = totalBytes / dt / (1024 * 1024);
