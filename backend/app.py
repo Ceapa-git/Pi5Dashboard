@@ -3,11 +3,12 @@ import signal
 import threading
 import time
 import datetime
-from flask import Flask, request
+from flask import Flask, request, abort
 from flask_cors import CORS
 from pymongo import MongoClient
 from stats import get_stats
 from werkzeug.serving import make_server
+from collections import deque
 
 client = MongoClient("mongodb://root:root@localhost:27018/admin")
 db = client["metrics"]
@@ -17,17 +18,44 @@ server = Flask(__name__)
 CORS(server)
 
 
-@server.get("/stats/now")
-def get_current_stats_request():
-  stats = get_stats()
-  stats["timestamp"] = int(time.time())
-  return stats
+# @server.get("/stats/now")
+# def get_current_stats_request():
+#   stats = get_stats()
+#   stats["timestamp"] = int(time.time())
+#   return stats
 
 
-@server.delete("/stats/clear")
-def delete_stats_request():
-  logs.delete_many({})
-  return {}
+# @server.delete("/stats/clear")
+# def delete_stats_request():
+#   logs.delete_many({})
+#   return {}
+
+view_limits = {
+  "10s": (5, 1),
+  "30s": (5, 1),
+  "60s": (5, 1),
+  "60m": (5, 1),
+  "24h": (5, 5),
+}
+
+request_history = {
+  view: deque() for view in view_limits
+}
+
+def rate_limit(view_name):
+  now = time.time()
+
+  max_requests, window_seconds = view_limits[view_name]
+  history = request_history[view_name]
+
+  while history and now - history[0] > window_seconds:
+    history.popleft()
+
+  if len(history) >= max_requests:
+    history.append(now)
+    abort(429, f"Too many requests. Slow down.")
+
+  history.append(now)
 
 
 @server.get("/stats")
@@ -39,6 +67,7 @@ def get_stats_request():
 
   if view not in views:
     view = default_view
+  rate_limit(view)
   view_time = times[views.index(view)]
 
   stats = list(
