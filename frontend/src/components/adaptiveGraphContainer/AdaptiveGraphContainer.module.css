@@ -9,13 +9,31 @@
   grid-template-rows: 1fr;
   grid-template-columns: 1fr;
 }
+@media (max-width: 768px) {
+  .graphContainerOne {
+    grid-template-rows: auto;
+    grid-template-columns: auto;
+  }
+}
 
 .graphContainerTwo {
   grid-template-rows: repeat(2, 1fr);
   grid-template-columns: 1fr;
 }
+@media (max-width: 768px) {
+  .graphContainerOne {
+    grid-template-rows: auto;
+    grid-template-columns: auto;
+  }
+}
 
 .graphContainerFour {
   grid-template-rows: repeat(2, 1fr);
   grid-template-columns: repeat(2, 1fr);
+}
+@media (max-width: 768px) {
+  .graphContainerFour {
+    grid-template-rows: auto;
+    grid-template-columns: auto;
+  }
 }
