@@ -1,6 +1,7 @@
 [Unit]
 Description=Start backend for dashboard
-After=network-online.target
+After=network-online.target dashboardDb.service
+Requires=dashboardDb.service
 Wants=network-online.target
 
 [Service]

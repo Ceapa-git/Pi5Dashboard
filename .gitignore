@@ -5,3 +5,4 @@ certs
 .env
 .editorconfig
 *.log
+backend/installed.txt
