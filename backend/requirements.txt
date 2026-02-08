@@ -1,5 +1,0 @@
-psutil
-flask
-pymongo
-Werkzeug
-flask-cors
