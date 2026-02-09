@@ -6,12 +6,20 @@ import threading
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
 
 db = Database()
 stop_event = threading.Event()
 logger_thread = None
 
 app = FastAPI(title="Pi5 Dashboard Backend")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 async def logging():

@@ -44,6 +44,7 @@ class Database:
     def get_last(self, seconds: int):
         if self.initialized is not True:
             return []
+        self.connection.commit()
 
         cutoff = time.time() - seconds
 
@@ -68,6 +69,11 @@ class Database:
         self.cursor.execute(
             "DELETE FROM metrics WHERE ts < strftime('%s','now') - ?", (seconds,)
         )
+
+    def commit(self):
+        if self.initialized is not True:
+            return
+        self.connection.commit()
 
     def close(self):
         if self.initialized is not True:

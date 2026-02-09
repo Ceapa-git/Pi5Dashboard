@@ -1,0 +1,16 @@
+[Unit]
+Description=Pi5 Dashboard Frontend
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/dan/src/Pi5Dashboard
+ExecStart=/bin/bash /home/dan/src/Pi5Dashboard/frontend.sh
+Restart=always
+RestartSec=5
+User=dan
+
+[Install]
+WantedBy=multi-user.target
+
+
