@@ -62,10 +62,6 @@ class Database:
             for ts, data in rows
         ]
 
-    def clean(self):
-        self.cursor.execute("DROP TABLE IF EXISTS metrics")
-        self.connection.commit()
-
     def cleanup_old(self, seconds=86400):
         if self.initialized is not True:
             return
