@@ -1,8 +1,4 @@
+*.db*
 venv
-.fleet
 __pycache__
-certs
-.env
-.editorconfig
-*.log
-backend/installed.txt
+installed.txt
