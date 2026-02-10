@@ -1,5 +1,4 @@
 .app {
-  max-width: 1200px;
   margin: 0 auto;
   padding: 1.5rem;
 }
@@ -24,4 +23,25 @@ section h2 {
   padding: 2rem;
   text-align: center;
   font-size: 1.2rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+@media (min-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(4, minmax(420px, 1fr));
+  }
+
+  .span-full {
+    grid-column: 1 / -1;
+  }
+
+  .span-2 {
+    grid-column: span 2;
+  }
 }

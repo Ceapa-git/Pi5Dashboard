@@ -9,6 +9,8 @@ fi
 echo "Activating virtual environment..."
 source ./.venv/bin/activate
 
+python3 -m pip install --upgrade pip > /dev/null
+
 if ! cmp -s requirements.txt .venv/installed.txt; then
     echo "Installing updated dependencies..."
     pip install --no-cache-dir -r requirements.txt > /dev/null

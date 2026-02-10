@@ -6,14 +6,12 @@ cd frontend
 # Check for node_modules
 if [ ! -d "node_modules" ]; then
     echo "Installing frontend dependencies..."
-    npm install
+    npm ci
 fi
 
-# Build the frontend for production
 echo "Building frontend..."
 npm run build
 
-# Serve the frontend using Vite preview
-echo "Starting frontend server..."
-npx vite preview --port 5173 --host
+echo "Frontend build complete: frontend/dist"
+echo "Serve with nginx (recommended)."
 

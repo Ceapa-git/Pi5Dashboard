@@ -4,22 +4,13 @@ import glob
 import os
 import time
 
-# DISK_MOUNTS = {
-#     "sd_card": "/",
-#     "ssd": "/mnt/storage",
-# }
-# DISK_DEVICES = {
-#     "sd_card": "mmcblk0",
-#     "ssd": "sda",
-# }
-
 DISK_MOUNTS = {
-    "primary": "/",
-    "ssd": "/mnt/ssd",
+    "sd_card": "/",
+    "ssd": "/mnt/storage",
 }
 DISK_DEVICES = {
-    "primary": "nvme1n1p2",
-    "ssd": "nvme0n1p1",
+    "sd_card": "mmcblk0",
+    "ssd": "sda",
 }
 
 PMIC_RAILS = [
