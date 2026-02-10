@@ -31,7 +31,7 @@ class Database:
         if self.initialized is not True:
             return
         if ts is None:
-            ts = time.time()
+            ts = int(time.time())
 
         self.cursor.execute(
             "INSERT INTO metrics (ts, data) VALUES (?, ?)", (ts, json.dumps(stats))
@@ -46,22 +46,28 @@ class Database:
             return []
         self.connection.commit()
 
-        cutoff = time.time() - seconds
+        cutoff = int(time.time()) - seconds
 
         self.cursor.execute(
-            "SELECT ts, data FROM metrics WHERE ts >= ? ORDER BY ts ASC",
-            (cutoff,),
+            "SELECT ts, data FROM metrics WHERE ts >= ? ORDER BY ts DESC LIMIT ?",
+            (
+                cutoff,
+                seconds,
+            ),
         )
 
         rows = self.cursor.fetchall()
+        rows.reverse()
 
-        return [
+        out = [
             {
                 "ts": ts,
                 "data": json.loads(data),
             }
             for ts, data in rows
         ]
+
+        return out
 
     def cleanup_old(self, seconds=86400):
         if self.initialized is not True:

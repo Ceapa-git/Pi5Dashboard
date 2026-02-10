@@ -6,6 +6,10 @@ import { Chart as ChartJS, registerables } from "chart.js";
 ChartJS.register(...registerables);
 
 export type ChartInput = {
+  x: string;
+  y: string;
+  yMax: number;
+  title: string;
   timestamps: string[];
   series: Array<{
     name: string;
@@ -17,15 +21,35 @@ type Props = {
   data: ChartInput
 }
 
+function gradientColors(count: number) {
+  const startHue = 0;
+  const endHue = 340;
+
+  return Array.from({ length: count }, (_, i) => {
+    const t = count === 1 ? 0 : i / (count - 1);
+    const hue = startHue + (endHue - startHue) * t;
+
+    return {
+      border: `hsl(${hue}, 70%, 55%)`,
+      background: `hsl(${hue}, 70%, 30%)`,
+    };
+  });
+}
+
 export default function Chart({ data }: Props) {
+  const colors = gradientColors(data.series.length);
+  const TIMESTAMPS = 10;
+
   const chartData: ChartData<"line", number[], string> = {
     labels: data.timestamps,
-    datasets: data.series.map((s) => ({
+    datasets: data.series.map((s, i) => ({
       label: s.name,
       data: s.values,
       borderWidth: 2,
       tension: 0.3,
       pointRadius: 0,
+      borderColor: colors[i].border,
+      backgroundColor: colors[i].background,
     }))
   }
 
@@ -37,22 +61,53 @@ export default function Chart({ data }: Props) {
       intersect: false,
     },
     plugins: {
+      title: {
+        display: true,
+        text: data.title,
+      },
       legend: {
         position: "top",
+        labels: {
+          boxWidth: 10,
+          boxHeight: 10,
+        }
       },
     },
     scales: {
       x: {
         title: {
           display: true,
-          text: "Time",
+          text: data.x,
         },
+        ticks: {
+          autoSkip: false,
+          maxRotation: 0,
+          minRotation: 0,
+          callback: function(value: any, index: number, ticks: any[]) {
+            const n = ticks.length;
+            if (n <= TIMESTAMPS) return this.getLabelForValue(value);
+            const step = (n - 1) / (TIMESTAMPS - 1);
+            const show = new Set<number>();
+            for (let k = 0; k < TIMESTAMPS; k++) {
+              show.add(Math.round(k * step));
+            }
+            show.add(0);
+            show.add(n - 1);
+
+            return show.has(index) ? this.getLabelForValue(value) : "";
+          },
+        },
+        grid: {
+          display: true,
+        }
       },
       y: {
         title: {
           display: true,
-          text: "Value",
+          text: data.y,
         },
+        beginAtZero: true,
+        max: ((data.yMax === 0) ? (undefined) : (data.yMax)),
       },
     }
   }

@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
+import time
 
 db = Database()
 stop_event = threading.Event()
@@ -30,7 +31,8 @@ async def logging():
         if loop >= 100:
             db.cleanup_old()
             loop = 0
-        await asyncio.sleep(1)
+        now = time.time()
+        await asyncio.sleep(max(0, (int(now) + 1) - now))
 
 
 def run_logging():
