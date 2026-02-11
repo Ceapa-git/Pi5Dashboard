@@ -10,7 +10,7 @@ export type ChartInput = {
   y: string;
   yMax?: number;
   title: string;
-  timestamps: string[];
+  timestamps: number[];
   disableLegend?: boolean;
   series: Array<{
     name: string;
@@ -40,28 +40,37 @@ function gradientColors(count: number) {
 export default function Chart({ data }: Props) {
   const colors = gradientColors(data.series.length);
 
-  const chartData: ChartData<"line", number[], string> = {
-    labels: data.timestamps,
+  const chartData: ChartData<"line", { x: number; y: number }[]> = {
     datasets: data.series.map((s, i) => ({
       label: s.name,
-      data: s.values,
+      data: data.timestamps.map((t, idx) => ({ x: t, y: s.values[idx] ?? 0 })),
       borderWidth: 2,
       tension: 0,
       pointRadius: 0,
       borderColor: colors[i].border,
       backgroundColor: colors[i].background,
-    }))
-  }
+    })),
+  };
+
 
   const options: ChartOptions<"line"> = {
     responsive: true,
     maintainAspectRatio: false,
+    parsing: false,
+    normalized: true,
     interaction: {
       mode: "index",
       intersect: false,
       axis: "x",
     },
     plugins: {
+      decimation: {
+        enabled: true,
+        algorithm: "lttb",
+        samples: 600,
+        threshold: 800,
+      },
+
       title: {
         display: !!data.title,
         text: data.title ?? "",
@@ -77,6 +86,9 @@ export default function Chart({ data }: Props) {
     },
     scales: {
       x: {
+        type: "linear",
+        min: data.timestamps[0],
+        max: data.timestamps[data.timestamps.length - 1],
         title: {
           display: true,
           text: data.x ?? "Time",
@@ -84,6 +96,11 @@ export default function Chart({ data }: Props) {
         ticks: {
           maxRotation: 0,
           minRotation: 0,
+          callback: (v) => {
+            const d = new Date(Number(v) * 1000);
+            return d.toLocaleTimeString("en-GB", { hour12: false });
+          },
+          maxTicksLimit: 8,
         },
         grid: {
           display: true,

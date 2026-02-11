@@ -26,11 +26,15 @@ app.add_middleware(
 async def logging():
     loop = 0
     while not stop_event.is_set():
-        db.log(get_stats())
-        loop = loop + 1
-        if loop >= 100:
-            db.cleanup_old()
-            loop = 0
+        try:
+            db.log(get_stats())
+            loop += 1
+            if loop >= 100:
+                db.cleanup_old()
+                loop = 0
+        except Exception as e:
+            print(f"[logger] exception: {e}")
+
         now = time.time()
         await asyncio.sleep(max(0, (int(now) + 1) - now))
 

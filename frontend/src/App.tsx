@@ -114,7 +114,9 @@ export type MetricSample = {
 
 
 export default function App() {
-  const [interval, _changeInterval] = useState<number>(60);
+  const MIN_SECONDS = 60;
+  const MAX_SECONDS = 24 * 3600;
+  const [interval, setIntervalSeconds] = useState<number>(MIN_SECONDS);
   const [metrics, setMetrics] = useState<MetricSample[]>([]);
 
   const emptyCharInput: ChartInput = {
@@ -166,9 +168,7 @@ export default function App() {
   useEffect(() => {
     if (metrics.length === 0)
       return
-    const sorted = [...metrics].sort((a, b) => a.ts - b.ts);
-
-    const last = sorted[sorted.length - 1].data;
+    const last = metrics[metrics.length - 1].data;
     setSystemStats([
       { label: "Uptime", value: last.uptime.human },
       { label: "Load 1m", value: last.load_avg["1m"].toFixed(2) },
@@ -176,23 +176,22 @@ export default function App() {
       { label: "Load 15m", value: last.load_avg["15m"].toFixed(2) },
     ])
 
-    const lastBin = sorted[sorted.length - 1].ts;
+    const lastBin = metrics[metrics.length - 1].ts;
     const firstBin = lastBin - interval + 1;
 
     const bins = [...Array(interval).keys()].map((x) => x + firstBin);
     const byBin = new Map<number, MetricSample>();
 
-    for (const s of sorted) {
+    for (const s of metrics) {
       byBin.set(s.ts, s);
     }
     const lastSample = byBin.get(lastBin)!.data;
-    const timestamps = bins.map((x) => epochToTime(x));
 
     setCpuUsage({
       y: "Percent",
       yMax: 100,
       title: "Cpu Usage (per core)",
-      timestamps: timestamps,
+      timestamps: bins,
       series: lastSample.cpu.usage_per_core.map((_m, i) => {
         return {
           name: `cpu${i + 1}`,
@@ -203,7 +202,7 @@ export default function App() {
     setCpuFrequency({
       y: "MHz",
       title: "Cpu Frequency",
-      timestamps: timestamps,
+      timestamps: bins,
       series: [
         {
           name: "min",
@@ -224,7 +223,7 @@ export default function App() {
       y: "MiB",
       yMax: 2 ** Math.ceil(Math.log2(lastSample.memory.total / (1024 ** 2))),
       title: `Memory Usage ${lastSample.memory.percent.toFixed(1)}%`,
-      timestamps: timestamps,
+      timestamps: bins,
       disableLegend: true,
       series: [
         {
@@ -243,7 +242,7 @@ export default function App() {
         y: "GiB",
         yMax: totalGiB,
         title: `${disk} Usage ${lastUsage.percent.toFixed(1)}%`,
-        timestamps,
+        timestamps: bins,
         disableLegend: true,
         series: [
           {
@@ -260,26 +259,32 @@ export default function App() {
     setDiskReadRate({
       y: "KiB/s",
       title: "Disk Read Rate (per disk)",
-      timestamps,
+      timestamps: bins,
       series: diskNames.map((disk) => ({
         name: disk,
         values: bins.map((b) => {
           const curr = byBin.get(b)?.data.disk.io_total[disk].read_bytes;
           const prev = byBin.get(b - 1)?.data.disk.io_total[disk].read_bytes;
           return delta(curr, prev) / 1024;
+        }).map((v, i, arr) => {
+          if (i === 0) return arr[1];
+          return v;
         }),
       })),
     });
     setDiskWriteRate({
       y: "KiB/s",
       title: "Disk Write Rate (per disk)",
-      timestamps,
+      timestamps: bins,
       series: diskNames.map((disk) => ({
         name: disk,
         values: bins.map((b) => {
           const curr = byBin.get(b)?.data.disk.io_total[disk].write_bytes;
           const prev = byBin.get(b - 1)?.data.disk.io_total[disk].write_bytes;
           return delta(curr, prev) / 1024;
+        }).map((v, i, arr) => {
+          if (i === 0) return arr[1];
+          return v;
         }),
       })),
     });
@@ -287,7 +292,7 @@ export default function App() {
     setNetBytesRate({
       y: "KiB/s",
       title: "Network Throughput",
-      timestamps,
+      timestamps: bins,
       series: [
         {
           name: "sent",
@@ -295,6 +300,9 @@ export default function App() {
             const curr = byBin.get(b)?.data.network.total.total_sent;
             const prev = byBin.get(b - 1)?.data.network.total.total_sent;
             return delta(curr, prev) / 1024;
+          }).map((v, i, arr) => {
+            if (i === 0) return arr[1];
+            return v;
           }),
         },
         {
@@ -303,6 +311,9 @@ export default function App() {
             const curr = byBin.get(b)?.data.network.total.total_received;
             const prev = byBin.get(b - 1)?.data.network.total.total_received;
             return delta(curr, prev) / 1024;
+          }).map((v, i, arr) => {
+            if (i === 0) return arr[1];
+            return v;
           }),
         },
       ],
@@ -310,7 +321,7 @@ export default function App() {
     setNetPacketsRate({
       y: "pkt/s",
       title: "Network Packets",
-      timestamps,
+      timestamps: bins,
       series: [
         {
           name: "sent",
@@ -318,6 +329,9 @@ export default function App() {
             const curr = byBin.get(b)?.data.network.total.packets_sent;
             const prev = byBin.get(b - 1)?.data.network.total.packets_sent;
             return delta(curr, prev);
+          }).map((v, i, arr) => {
+            if (i === 0) return arr[1];
+            return v;
           }),
         },
         {
@@ -326,6 +340,9 @@ export default function App() {
             const curr = byBin.get(b)?.data.network.total.packets_received;
             const prev = byBin.get(b - 1)?.data.network.total.packets_received;
             return delta(curr, prev);
+          }).map((v, i, arr) => {
+            if (i === 0) return arr[1];
+            return v;
           }),
         },
       ],
@@ -338,7 +355,7 @@ export default function App() {
         y: "°C",
         yMax: 90,
         title: `Temps: ${name}`,
-        timestamps,
+        timestamps: bins,
         disableLegend: true,
         series: [...Array(sensorCount).keys()].map((i) => ({
           name: `sensor ${i + 1}`,
@@ -353,7 +370,7 @@ export default function App() {
     setFanRpm({
       y: "RPM",
       title: "Fan Speed",
-      timestamps: timestamps,
+      timestamps: bins,
       disableLegend: true,
       series: [
         {
@@ -374,7 +391,7 @@ export default function App() {
     setRailPowers({
       y: "W",
       title: "Power Rails (W)",
-      timestamps,
+      timestamps: bins,
       series: railNames.map((rail) => ({
         name: rail,
         values: bins.map((b) => getRailPower(b, rail)),
@@ -383,7 +400,7 @@ export default function App() {
     setTotalPower({
       y: "W",
       title: "Total Power (W)",
-      timestamps,
+      timestamps: bins,
       disableLegend: true,
       series: [
         {
@@ -394,14 +411,43 @@ export default function App() {
     });
   }, [metrics]);
 
-  function epochToTime(timestamp: number) {
-    const d = new Date(timestamp * 1000);
-    return d.toLocaleTimeString('en-GB', { hour12: false });
-  }
-
   return (
     <div className="app">
       <h1>Pi5 Dashboard</h1>
+      <div className="toolbar">
+        <label>Window</label>
+
+        <div className="hm-picker">
+          <input
+            type="number"
+            min={0}
+            max={24}
+            value={Math.floor(interval / 3600)}
+            onChange={(e) => {
+              const h = Number(e.target.value);
+              const m = Math.floor((interval % 3600) / 60);
+              setIntervalSeconds(
+                Math.min(MAX_SECONDS, Math.max(MIN_SECONDS, h * 3600 + m * 60))
+              );
+            }}
+          />
+          <span>:</span>
+          <input
+            type="number"
+            min={0}
+            max={59}
+            value={Math.floor((interval % 3600) / 60)}
+            onChange={(e) => {
+              const m = Number(e.target.value);
+              const h = Math.floor(interval / 3600);
+              setIntervalSeconds(
+                Math.min(MAX_SECONDS, Math.max(MIN_SECONDS, h * 3600 + m * 60))
+              );
+            }}
+          />
+        </div>
+      </div>
+
       <div className="dashboard-grid">
         <ContentWrapper>
           <InfoStats title="System Info" items={systemStats} />

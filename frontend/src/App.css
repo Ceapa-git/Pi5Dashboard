@@ -45,3 +45,51 @@ section h2 {
     grid-column: span 2;
   }
 }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  color: #e6e6e6;
+}
+
+.hm-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hm-picker input {
+  width: 64px;
+  padding: 6px 8px;
+
+  background: #1e1e1e;
+  color: #fff;
+
+  border: 1px solid #333;
+  border-radius: 6px;
+
+  text-align: center;
+  font-size: 14px;
+}
+
+.hm-picker input:focus {
+  outline: none;
+  border-color: #5b9cff;
+}
+
+.hm-picker span {
+  color: #aaa;
+}
+
+
+.hm-picker input[type="number"]::-webkit-outer-spin-button,
+.hm-picker input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.hm-picker input[type="number"] {
+  -moz-appearance: textfield;
+}
